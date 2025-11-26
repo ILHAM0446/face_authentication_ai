@@ -5,6 +5,9 @@ from pathlib import Path
 import time
 import platform
 import re
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
 
 # Ajouter le dossier racine au path Python
 root = Path(__file__).resolve().parents[1]
@@ -138,3 +141,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

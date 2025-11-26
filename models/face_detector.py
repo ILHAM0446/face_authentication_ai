@@ -2,6 +2,8 @@ import cv2
 import dlib
 import os
 from pathlib import Path
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 class FaceDetector:
     def __init__(self, detector_type="haar", landmark_path=None):
