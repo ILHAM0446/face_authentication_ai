@@ -14,9 +14,11 @@ sys.path.append(str(root))
 from models.face_encoder import FaceEncoder
 from models.face_detector import FaceDetector
 from utils.preprocessing import crop_face  # Si tu as utils/preprocessing.py
+from database.database_manager import DatabaseManager
 
 encoder = FaceEncoder()
 detector = FaceDetector(detector_type="haar")
+db_manager = DatabaseManager()
 
 # --- Répertoire de sauvegarde ---
 output_dir = root / "captured_faces"
@@ -24,8 +26,21 @@ output_dir.mkdir(exist_ok=True)
 face_count = len(list(output_dir.glob("face_*"))) + 1
 
 # --- Fonction capture caméra ---
-def open_camera_and_capture():
+def open_camera_and_capture(username=None):
     global face_count
+    
+    if not username or username.strip() == "":
+        messagebox.showerror("Erreur", "Veuillez entrer votre nom")
+        return
+    
+    # Créer l'utilisateur dans Supabase
+    user_id = db_manager.create_user(username.strip())
+    if not user_id:
+        messagebox.showerror("Erreur", "Impossible de créer l'utilisateur")
+        return
+    
+    messagebox.showinfo("Succès", f"Utilisateur créé : {username}")
+    
     cap = cv2.VideoCapture(0)
 
     if not cap.isOpened():
@@ -63,10 +78,10 @@ def open_camera_and_capture():
                         cv2.imwrite(str(file_path), face_img)
                         messagebox.showinfo("Capture", f"Image sauvegardée → {file_path}")
 
-                        # --- Encoder le visage ---
-                        embedding = encoder.encode_face(str(file_path))
+                        # --- Encoder le visage et enregistrer dans Supabase ---
+                        embedding = encoder.encode_face(str(file_path), user_id=user_id)
                         if embedding is not None:
-                            messagebox.showinfo("Succès", "Embedding généré !")
+                            messagebox.showinfo("Succès", "Embedding généré et enregistré dans la base de données !")
                         face_count += 1
             break
 
@@ -92,10 +107,20 @@ style.configure("Normal.TLabel", font=("Segoe UI", 11), background="#f0f0f5")
 ttk.Label(root_tk, text="FACE SECURITY", style="Title.TLabel").pack(pady=15)
 
 # Message
-ttk.Label(root_tk, text="Veuillez vous authentifier via la caméra", style="Normal.TLabel").pack(pady=5)
+ttk.Label(root_tk, text="Entrez votre nom et lancez la capture", style="Normal.TLabel").pack(pady=5)
 
-# Bouton capture
-ttk.Button(root_tk, text="📸 Lancer la Capture", command=open_camera_and_capture).pack(pady=25)
+# Champ d'entrée du nom d'utilisateur
+username_label = ttk.Label(root_tk, text="Nom d'utilisateur :", style="Normal.TLabel")
+username_label.pack(pady=5)
+username_entry = ttk.Entry(root_tk, width=30, font=("Segoe UI", 11))
+username_entry.pack(pady=5, padx=20)
+
+# Bouton capture avec fonction wrapper
+def start_capture():
+    username = username_entry.get()
+    open_camera_and_capture(username)
+
+ttk.Button(root_tk, text="📸 Lancer la Capture", command=start_capture).pack(pady=25)
 
 # Affichage du status
 status_label = ttk.Label(root_tk, text="En attente…", style="Normal.TLabel")
