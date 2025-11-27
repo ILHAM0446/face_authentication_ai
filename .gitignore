@@ -1,0 +1,7 @@
+
+*.keras
+*.h5
+*.dat
+
+# Ignorer le cache Python
+__pycache__/
