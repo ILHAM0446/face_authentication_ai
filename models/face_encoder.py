@@ -46,11 +46,8 @@ class FaceEncoder:
             else:
                 print(f"❌ Erreur lors de l'enregistrement de l'embedding")
         
-        # Optionnel : sauvegarder aussi localement
-        out_dir = Path("embeddings")
-        out_dir.mkdir(exist_ok=True)
-        file_name = out_dir / (Path(img_path).stem + ".npy")
-        np.save(file_name, embedding)
-
-        print(f"✅ Embedding enregistré localement → {file_name}")
+        # Ne pas sauvegarder localement : on n'enregistre que dans la base de données
+        if not user_id:
+            # Si aucun user_id fourni, on indique juste qu'on a calculé l'embedding
+            print("ℹ️ Embedding calculé (non sauvegardé localement, user_id non fourni)")
         return embedding

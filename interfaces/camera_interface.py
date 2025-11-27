@@ -126,10 +126,18 @@ def main():
                     for (x, y, w, h) in faces:
                         face_img = crop_face(frame, (x, y, w, h), margin=10)
                         if face_img is not None:
-                            file_path = output_dir / f"face_{face_count}.jpg"
-                            cv2.imwrite(str(file_path), face_img)
-                            print(f"📸 Visage sauvegardé → {file_path}")
-                            face_count += 1
+                                # Toujours sauvegarder sous le même nom pour remplacer l'ancien
+                                file_path = output_dir / "face_1.jpg"
+                                try:
+                                    written = cv2.imwrite(str(file_path), face_img)
+                                except Exception as e:
+                                    written = False
+                                    print(f"❌ Erreur lors de l'écriture du fichier : {e}")
+
+                                if written:
+                                    print(f"📸 Visage sauvegardé (écrasé) → {file_path}")
+                                else:
+                                    print("⚠️ Échec de l'écriture du fichier (cv2.imwrite a renvoyé False)")
 
     except KeyboardInterrupt:
         print("\n⏸️ Interruption utilisateur")

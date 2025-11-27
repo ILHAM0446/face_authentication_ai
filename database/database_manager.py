@@ -78,13 +78,37 @@ class DatabaseManager:
         try:
             if _HAS_SUPABASE and self.supabase is not None:
                 response = self.supabase.table("users").select("*").execute()
-                return response.data
+                return response.data if response.data else []
+            # Fallback HTTP
             resp = requests.get(f"{self.url}/rest/v1/users", headers=self._headers, timeout=10)
             resp.raise_for_status()
-            return resp.json()
+            return resp.json() if resp.json() else []
         except Exception as e:
-            print(f"❌ Erreur récupération users : {e}")
+            print("❌ Erreur get_all_users:", e)
             return []
+
+    def get_user_by_id(self, user_id: str):
+        """Récupère un utilisateur par son ID"""
+        try:
+            if _HAS_SUPABASE and self.supabase is not None:
+                response = self.supabase.table("users").select("*").eq("id", user_id).execute()
+                if response.data:
+                    return response.data[0]
+                return None
+            # Fallback HTTP
+            resp = requests.get(
+                f"{self.url}/rest/v1/users?id=eq.{user_id}",
+                headers=self._headers,
+                timeout=10,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            if isinstance(data, list) and len(data) > 0:
+                return data[0]
+            return None
+        except Exception as e:
+            print(f"❌ Erreur get_user_by_id: {e}")
+            return None
 
     def delete_user(self, user_id: str):
         try:
