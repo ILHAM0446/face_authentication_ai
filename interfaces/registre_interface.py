@@ -94,12 +94,13 @@ def open_camera_and_capture(username=None):
 root_tk = tk.Tk()
 root_tk.title("🔐 Face Authentication AI")
 root_tk.geometry("420x420")
-root_tk.configure(bg="
+root_tk.configure(bg="#f0f0f5")
 
 style = ttk.Style()
 style.configure("TButton", font=("Segoe UI", 12, "bold"), padding=10)
-style.configure("Title.TLabel", font=("Segoe UI", 18, "bold"), background="
-style.configure("Normal.TLabel", font=("Segoe UI", 11), background="
+style.configure("Title.TLabel", font=("Segoe UI", 18, "bold"), background="#f0f0f5")
+style.configure("Normal.TLabel", font=("Segoe UI", 11), background="#f0f0f5")
+
 
 ttk.Label(root_tk, text="FACE SECURITY", style="Title.TLabel").pack(pady=15)
 
