@@ -1,9 +1,9 @@
 # Modèles dlib et fichiers volumineux
-*.dat
-*.xml
+models/dlib_face_recognition_resnet_model_v1.dat
+models/haarcascade_frontalface_default.xml
 dlib/
 dlib_face_recognition_resnet_model_v1.dat
-shape_predictor_68_face_landmarks.dat
+models/shape_predictor_68_face_landmarks.dat
 mmod_human_face_detector.dat
 
 # Fichiers de capture et embeddings
