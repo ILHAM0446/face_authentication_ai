@@ -106,8 +106,6 @@ def recognize_user():
                     username = user_info["name"]
                 else:
                     username = "Utilisateur inconnu"
-
-                messagebox.showinfo("Succès", f"Utilisateur reconnu : {username}")
                 show_welcome_screen(username)
 
             else:

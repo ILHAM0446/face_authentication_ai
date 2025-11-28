@@ -7,10 +7,6 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 class FaceDetector:
     def __init__(self, detector_type="haar", landmark_path=None):
-        """
-        detector_type : "haar" ou "dlib"
-        landmark_path : chemin vers shape_predictor_68_face_landmarks.dat (optionnel)
-        """
         self.detector_type = detector_type
         
         if detector_type == "haar":
@@ -42,12 +38,6 @@ class FaceDetector:
             self.predictor = dlib.shape_predictor(landmark_path)
 
     def detect_faces(self, image):
-        """
-        Détecte les visages dans une image.
-        Retour : (faces, landmarks)
-            faces : [(x, y, w, h)]
-            landmarks : [shape_68_points]
-        """
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         faces = []
         landmarks = []

@@ -94,7 +94,7 @@ def main():
 
             cv2.putText(
                 frame,
-                f"Visages: {len(faces)}  |  'c'=capture  'ESC'=quit",
+                f"Visages: {len(faces)}  |  'Entrée'=capture  'ESC'=quit",
                 (10, 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
@@ -110,7 +110,7 @@ def main():
                 print("👋 Fermeture...")
                 break
 
-            if key == ord("c"):
+            if key in (13, 10):  
                 if len(faces) == 0:
                     print("⚠️ Aucun visage détecté")
                 else:
