@@ -1,4 +1,3 @@
-# interface/login_interface.py
 import sys
 import cv2
 import numpy as np
@@ -7,7 +6,9 @@ from tkinter import messagebox, ttk
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-sys.path.append(str(root))
+sys.path.append(str(root))              
+sys.path.append(str(root / "interfaces"))  
+from welcome_interface import show_welcome_screen
 
 from models.face_encoder import FaceEncoder
 from models.face_detector import FaceDetector
@@ -23,7 +24,7 @@ output_dir.mkdir(exist_ok=True)
 
 
 def recognize_user():
-    """Ouvre la caméra, capture un visage, génère un embedding et compare avec Supabase"""
+    
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         messagebox.showerror("Erreur", "Impossible d'ouvrir la caméra")
@@ -44,7 +45,6 @@ def recognize_user():
         cv2.imshow("Login - Reconnaissance Faciale", frame)
         key = cv2.waitKey(1) & 0xFF
 
-        # ------------- CAPTURE -------------
         if key == ord("c"):
 
             if len(faces) == 0:
@@ -53,17 +53,30 @@ def recognize_user():
 
             x, y, w, h = faces[0]
             face_img = crop_face(frame, (x, y, w, h), margin=10)
+            
+            if face_img is None:
+                messagebox.showerror("Erreur", "Impossible de découper le visage.")
+                continue
 
-            img_path = str(output_dir / "login_face.jpg")
-            cv2.imwrite(img_path, face_img)
+            img_path = str(output_dir / "face_1.jpg")
+            try:
+                written = cv2.imwrite(img_path, face_img)
+            except Exception as e:
+                written = False
+                print(f"Erreur lors de l'écriture du fichier : {e}")
 
-            # --- Génère embedding de l'utilisateur actuel ---
+            if not written:
+                messagebox.showerror("Erreur", f"Impossible de sauvegarder l'image : {img_path}")
+                print(f" cv2.imwrite a échoué pour {img_path}")
+                continue
+
+            print(f" Visage capturé et sauvegardé → {img_path}")
+
             emb = encoder.encode_face(img_path, user_id=None)
             if emb is None:
                 messagebox.showerror("Erreur", "Impossible de lire le visage.")
                 break
 
-            # --- Récupère EMBEDDINGS + USER_ID en BD ---
             rows = db.get_all_embeddings()
             if not rows:
                 messagebox.showerror("Erreur", "Aucun utilisateur enregistré.")
@@ -72,7 +85,6 @@ def recognize_user():
             best_score = 9999
             best_user_id = None
 
-            # --- Comparaison de distances ---
             for user in rows:
                 try:
                     db_emb = np.array(user["embedding"])
@@ -86,10 +98,8 @@ def recognize_user():
                     print("[ERREUR]", e)
                     continue
 
-            # --------- RECONNAISSANCE ----------
             if best_user_id and best_score < 0.45:
 
-                # Récupération du username depuis la table users
                 user_info = db.get_user_by_id(best_user_id)
 
                 if user_info and "name" in user_info:
@@ -97,20 +107,20 @@ def recognize_user():
                 else:
                     username = "Utilisateur inconnu"
 
-                messagebox.showinfo("Succès",
-                                    f"👤 Utilisateur reconnu : {username}\nDistance = {round(best_score, 3)}")
+                messagebox.showinfo("Succès", f"Utilisateur reconnu : {username}")
+                show_welcome_screen(username)
+
             else:
                 messagebox.showerror("Accès Refusé", "Utilisateur non reconnu.")
             break
 
-        elif key == 27:  # ESC -> Quitter
+        elif key == 27: 
             break
 
     cap.release()
     cv2.destroyAllWindows()
 
 
-# ---------------- INTERFACE TK --------------------
 root_tk = tk.Tk()
 root_tk.title("🔑 Login - Face Authentication")
 root_tk.geometry("400x300")
