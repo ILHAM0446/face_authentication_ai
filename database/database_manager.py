@@ -3,12 +3,9 @@ import json
 import numpy as np
 from dotenv import load_dotenv
 try:
-    # Essayer d'importer le client officiel (si le package pip 'supabase' est accessible)
-    from supabase import create_client, Client  # type: ignore
+    from supabase import create_client, Client
     _HAS_SUPABASE = True
 except Exception:
-    # Il est fréquent d'avoir un dossier local `supabase/` qui masque le package pip.
-    # Dans ce cas on utilisera une implémentation HTTP minimale via `requests`.
     _HAS_SUPABASE = False
 
 load_dotenv()
@@ -22,7 +19,6 @@ class DatabaseManager:
         service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
         anon_key = os.getenv("SUPABASE_KEY")
 
-        # Toujours privilégier la clé service pour les inserts
         key = service_key if service_key else anon_key
 
         if not url or not key:
@@ -32,23 +28,17 @@ class DatabaseManager:
         self.key = key
 
         if _HAS_SUPABASE:
-            # Initialiser le client officiel
             self.supabase: Client = create_client(self.url, self.key)
         else:
             self.supabase = None
 
-        # En-têtes pour requêtes REST si on utilise requests
         self._headers = {
             "apikey": self.key,
             "Authorization": f"Bearer {self.key}",
             "Content-Type": "application/json",
-            # On demande la représentation renvoyée pour obtenir les lignes insérées
             "Prefer": "return=representation",
         }
 
-    # ------------------------
-    # CRUD USERS
-    # ------------------------
 
     def create_user(self, name: str):
         """Créer un utilisateur. Retourne l'id (uuid) ou None."""
@@ -58,7 +48,6 @@ class DatabaseManager:
                 if response.data:
                     return response.data[0]["id"]
                 return None
-            # Fallback HTTP
             resp = requests.post(
                 f"{self.url}/rest/v1/users",
                 headers=self._headers,
@@ -79,7 +68,6 @@ class DatabaseManager:
             if _HAS_SUPABASE and self.supabase is not None:
                 response = self.supabase.table("users").select("*").execute()
                 return response.data if response.data else []
-            # Fallback HTTP
             resp = requests.get(f"{self.url}/rest/v1/users", headers=self._headers, timeout=10)
             resp.raise_for_status()
             return resp.json() if resp.json() else []
@@ -95,7 +83,6 @@ class DatabaseManager:
                 if response.data:
                     return response.data[0]
                 return None
-            # Fallback HTTP
             resp = requests.get(
                 f"{self.url}/rest/v1/users?id=eq.{user_id}",
                 headers=self._headers,
@@ -124,9 +111,6 @@ class DatabaseManager:
             print(f"❌ Erreur suppression user : {e}")
             return False
 
-    # ------------------------
-    # CRUD EMBEDDINGS
-    # ------------------------
 
     def save_face_embedding(self, user_id: str, embedding: np.ndarray):
         """Enregistrer embedding en JSON dans Supabase"""
@@ -170,7 +154,6 @@ class DatabaseManager:
                     })
                 return results
 
-            # Fallback HTTP: récupérer face_embeddings et faire jointure via select
             params = {"select": "id,user_id,embedding,users(name)"}
             resp = requests.get(
                 f"{self.url}/rest/v1/face_embeddings",

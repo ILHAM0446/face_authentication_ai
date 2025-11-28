@@ -8,8 +8,6 @@ import re
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
-
-# Ajouter le dossier racine au path Python
 root = Path(__file__).resolve().parents[1]
 sys.path.append(str(root))
 
@@ -21,10 +19,10 @@ def open_camera():
     """Essaye tous les backends Windows et retourne la caméra opérationnelle"""
 
     backends = [
-        cv2.CAP_DSHOW,     # Le plus fiable sur Windows
-        cv2.CAP_MSMF,      # Parfois instable
-        cv2.CAP_VFW,       # Ancien backend
-        cv2.CAP_ANY        # Fallback
+        cv2.CAP_DSHOW,
+        cv2.CAP_MSMF,
+        cv2.CAP_VFW,
+        cv2.CAP_ANY
     ]
 
     for backend in backends:
@@ -36,7 +34,6 @@ def open_camera():
             print("❌ Impossible d'ouvrir la caméra avec ce backend")
             continue
 
-        # Test de lecture
         ret, frame = cap.read()
         if not ret or frame is None:
             print("⚠️ Caméra ouverte mais frame noire / vide")
@@ -58,18 +55,15 @@ def main():
     if cap is None:
         return
 
-    # Réglages caméra
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     cap.set(cv2.CAP_PROP_FPS, 30)
 
     detector = FaceDetector(detector_type="haar")
-    
-    # --- FIXED: chemin correct vers captured_faces dans face_authentication_ai ---
+
     output_dir = root / "captured_faces"
     output_dir.mkdir(exist_ok=True)
-    
-    # Initialise face_count au dernier fichier existant + 1
+
     existing = list(output_dir.glob("face_*"))
     max_idx = 0
     for p in existing:
@@ -86,7 +80,6 @@ def main():
 
     try:
         while True:
-
             ret, frame = cap.read()
 
             if not ret or frame is None:
@@ -94,10 +87,8 @@ def main():
                 time.sleep(0.05)
                 continue
 
-            # Détection des visages
             faces, _ = detector.detect_faces(frame)
 
-            # Dessin rectangles
             for (x, y, w, h) in faces:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
@@ -115,7 +106,7 @@ def main():
 
             key = cv2.waitKey(1) & 0xFF
 
-            if key == 27:  # ESC
+            if key == 27:
                 print("👋 Fermeture...")
                 break
 
@@ -126,18 +117,17 @@ def main():
                     for (x, y, w, h) in faces:
                         face_img = crop_face(frame, (x, y, w, h), margin=10)
                         if face_img is not None:
-                                # Toujours sauvegarder sous le même nom pour remplacer l'ancien
-                                file_path = output_dir / "face_1.jpg"
-                                try:
-                                    written = cv2.imwrite(str(file_path), face_img)
-                                except Exception as e:
-                                    written = False
-                                    print(f"❌ Erreur lors de l'écriture du fichier : {e}")
+                            file_path = output_dir / "face_1.jpg"
+                            try:
+                                written = cv2.imwrite(str(file_path), face_img)
+                            except Exception as e:
+                                written = False
+                                print(f"❌ Erreur lors de l'écriture du fichier : {e}")
 
-                                if written:
-                                    print(f"📸 Visage sauvegardé (écrasé) → {file_path}")
-                                else:
-                                    print("⚠️ Échec de l'écriture du fichier (cv2.imwrite a renvoyé False)")
+                            if written:
+                                print(f"📸 Visage sauvegardé (écrasé) → {file_path}")
+                            else:
+                                print("⚠️ Échec de l'écriture du fichier (cv2.imwrite a renvoyé False)")
 
     except KeyboardInterrupt:
         print("\n⏸️ Interruption utilisateur")

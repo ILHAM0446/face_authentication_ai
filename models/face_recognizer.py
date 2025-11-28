@@ -3,7 +3,6 @@ import cv2
 import numpy as np
 from pathlib import Path
 
-# Imports internes
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from models.face_encoder import FaceEncoder
@@ -23,13 +22,9 @@ class FaceRecognizer:
         self.threshold = threshold
         self.metric = metric
 
-        # Cache local des embeddings récupérées depuis la DB
-        # Structure: { user_id: [np.array, ...] }
         self.user_embeddings = None
-        # Prototypes (moyenne normalisée par user) : { user_id: np.array }
         self.user_prototypes = None
 
-    # ----------------------------------------------------
     def _l2_normalize(self, v):
         v = np.array(v, dtype=float)
         norm = np.linalg.norm(v)
@@ -67,7 +62,6 @@ class FaceRecognizer:
             emb = np.array(row["embedding"], dtype=float)
             user_map.setdefault(uid, []).append(emb)
 
-        # Construire les prototypes (moyenne normalisée)
         prototypes = {}
         for uid, embs in user_map.items():
             mat = np.vstack(embs)
@@ -77,19 +71,12 @@ class FaceRecognizer:
         self.user_embeddings = user_map
         self.user_prototypes = prototypes
 
-    # ----------------------------------------------------
     def recognize(self, img_path):
-        """Reconnaît l'utilisateur à partir d'une image.
-
-        Retourne user_id ou None.
-        """
-        # --- Charger l'image ---
         img = cv2.imread(img_path)
         if img is None:
             print("❌ Impossible de charger l'image capturée.")
             return None
 
-        # --- Détection ---
         faces, _ = self.detector.detect_faces(img)
         if len(faces) == 0:
             print("❌ Aucun visage détecté pour la reconnaissance.")
@@ -102,34 +89,27 @@ class FaceRecognizer:
             print("❌ Impossible de découper le visage.")
             return None
 
-        # Sauvegarde temporaire de la face crop
         temp_path = Path("captured_faces/face_rec_temp.jpg")
         cv2.imwrite(str(temp_path), face_img)
 
-        # --- Générer embedding ---
         embedding = self.encoder.encode_face(str(temp_path))
         if embedding is None:
             print("❌ Embedding non généré.")
             return None
 
-        # Charger embeddings DB (cache)
         self._load_embeddings_from_db()
         if not self.user_prototypes:
             print("⚠️ Aucun embedding enregistré dans la base.")
             return None
 
-        # Normaliser l'embedding si on utilise cosine
         query_emb = self._l2_normalize(embedding) if self.metric == "cosine" else embedding
 
         best_user = None
         best_score = float("inf")
 
-        # Comparer avec prototype puis affiner en comparant aux embeddings individuels
         for uid, proto in self.user_prototypes.items():
-            # distance au prototype
             d_proto = self.compare_embeddings(query_emb, proto)
 
-            # distance min aux embeddings enregistrés pour cet utilisateur
             embs = self.user_embeddings.get(uid, [])
             d_min = float("inf")
             for db_emb in embs:
@@ -138,7 +118,6 @@ class FaceRecognizer:
                 if d < d_min:
                     d_min = d
 
-            # Choisir la plus faible distance pertinente entre prototype et min
             d_use = min(d_proto, d_min)
 
             if d_use < best_score:

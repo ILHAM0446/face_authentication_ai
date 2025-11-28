@@ -1,9 +1,12 @@
 # Modèles dlib et fichiers volumineux
 models/dlib_face_recognition_resnet_model_v1.dat
 models/haarcascade_frontalface_default.xml
-dlib/
 models/shape_predictor_68_face_landmarks.dat
+models/shape_predictor_68_face_landmarks.dat.bz2
+dlib/
 mmod_human_face_detector.dat
+*.dat
+*.bz2
 
 # Fichiers de capture et embeddings
 captured_faces/
@@ -53,6 +56,7 @@ Thumbs.db
 # Fichiers temporaires
 *.tmp
 *.log
+.env
 .env.local
 
 # Fichiers Supabase
