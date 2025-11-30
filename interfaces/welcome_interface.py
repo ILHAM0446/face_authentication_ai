@@ -6,7 +6,8 @@ WINDOW_HEIGHT = 700
 
 
 def show_welcome_screen(username, parent=None):
-    """Affiche une fenêtre de bienvenue stylée et grande."""
+    from unknown_users_interface import show_unknown_users_screen
+    
     win = tk.Toplevel(parent) if parent else tk.Tk()
     win.title("Bienvenue")
     win.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
@@ -31,7 +32,10 @@ def show_welcome_screen(username, parent=None):
                 pass
 
     btn = tk.Button(win, text="Fermer", command=close_welcome, font=("Segoe UI", 14, "bold"), bg="#1976D2", fg="white", padx=20, pady=10)
-    btn.pack(pady=40)
+    btn.pack(pady=20)
+
+    btn_unknown = tk.Button(win, text="👤 Voir utilisateurs inconnus qui essayent d'entrer", command=lambda: show_unknown_users_screen(win), font=("Segoe UI", 12, "bold"), bg="#F57C00", fg="white", padx=15, pady=8)
+    btn_unknown.pack(pady=10)
     try:
         win.transient(parent)
         win.grab_set()

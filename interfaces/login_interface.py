@@ -1,15 +1,16 @@
 import sys
 import cv2
+import re
 import numpy as np
 import tkinter as tk
 from tkinter import messagebox, ttk
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-sys.path.append(str(root))              
-sys.path.append(str(root / "interfaces"))  
-from welcome_interface import show_welcome_screen
+sys.path.append(str(root))
+sys.path.append(str(root / "interfaces"))
 
+from welcome_interface import show_welcome_screen
 from models.face_encoder import FaceEncoder
 from models.face_detector import FaceDetector
 from utils.preprocessing import crop_face
@@ -22,9 +23,37 @@ db = DatabaseManager()
 output_dir = root / "captured_faces"
 output_dir.mkdir(exist_ok=True)
 
+unknown_dir = root / "unknown_users"
+unknown_dir.mkdir(exist_ok=True)
+
+
+def save_unknown_face(face_img):
+    try:
+        existing = list(unknown_dir.glob("face_*.jpg"))
+        max_idx = 0
+        for p in existing:
+            m = re.search(r"face_(\d+)", p.name)
+            if m:
+                idx = int(m.group(1))
+                if idx > max_idx:
+                    max_idx = idx
+        
+        next_idx = max_idx + 1
+        output_path = unknown_dir / f"face_{next_idx}.jpg"
+        
+        success = cv2.imwrite(str(output_path), face_img)
+        if success:
+            print(f"💾 Visage non reconnu sauvegardé → {output_path}")
+            return str(output_path)
+        else:
+            print(f"⚠️ Erreur lors de la sauvegarde du visage non reconnu")
+            return None
+    except Exception as e:
+        print(f"❌ Erreur save_unknown_face: {e}")
+        return None
+
 
 def recognize_user():
-    
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         messagebox.showerror("Erreur", "Impossible d'ouvrir la caméra")
@@ -109,7 +138,8 @@ def recognize_user():
                 show_welcome_screen(username)
 
             else:
-                messagebox.showerror("Accès Refusé", "Utilisateur non reconnu.")
+                save_unknown_face(face_img)
+                messagebox.showerror("Accès Refusé", "Utilisateur non reconnu")
             break
 
         elif key == 27: 

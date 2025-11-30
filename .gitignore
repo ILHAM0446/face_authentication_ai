@@ -10,6 +10,7 @@ mmod_human_face_detector.dat
 
 # Fichiers de capture et embeddings
 captured_faces/
+unknown_users/
 embeddings/
 *.jpg
 *.png

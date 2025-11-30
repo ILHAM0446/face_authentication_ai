@@ -1,5 +1,6 @@
 import sys
 import cv2
+import re
 import numpy as np
 from pathlib import Path
 
@@ -12,10 +13,6 @@ from models.face_detector import FaceDetector
 
 class FaceRecognizer:
     def __init__(self, threshold=0.45, metric="cosine"):
-        """
-        threshold : seuil utilisé selon la métrique
-        metric : 'cosine' ou 'euclidean'
-        """
         self.encoder = FaceEncoder()
         self.db = DatabaseManager()
         self.detector = FaceDetector(detector_type="haar")
@@ -24,18 +21,42 @@ class FaceRecognizer:
 
         self.user_embeddings = None
         self.user_prototypes = None
+        
+        self.unknown_dir = Path(__file__).resolve().parents[1] 
+        self.unknown_dir.mkdir(exist_ok=True)
 
     def _l2_normalize(self, v):
         v = np.array(v, dtype=float)
         norm = np.linalg.norm(v)
         return v / norm if norm > 0 else v
 
-    def compare_embeddings(self, emb1, emb2):
-        """Compare deux embeddings selon la métrique choisie.
+    def _save_unknown_face(self, face_img):
+        
+        try:
+            existing = list(self.unknown_dir.glob("face_*.jpg"))
+            max_idx = 0
+            for p in existing:
+                m = re.search(r"face_(\d+)", p.name)
+                if m:
+                    idx = int(m.group(1))
+                    if idx > max_idx:
+                        max_idx = idx
+            
+            next_idx = max_idx + 1
+            output_path = self.unknown_dir / f"face_{next_idx}.jpg"
+            
+            success = cv2.imwrite(str(output_path), face_img)
+            if success:
+                print(f" Visage non reconnu sauvegardé → {output_path}")
+                return str(output_path)
+            else:
+                print(f" Erreur lors de la sauvegarde du visage non reconnu")
+                return None
+        except Exception as e:
+            print(f" Erreur _save_unknown_face: {e}")
+            return None
 
-        - 'cosine' : retourne 1 - cosine_similarity (donc plus petit = plus similaire)
-        - 'euclidean' : distance euclidienne classique
-        """
+    def compare_embeddings(self, emb1, emb2):
         emb1 = np.array(emb1, dtype=float)
         emb2 = np.array(emb2, dtype=float)
         if self.metric == "cosine":
@@ -46,7 +67,7 @@ class FaceRecognizer:
             return float(np.linalg.norm(emb1 - emb2))
 
     def _load_embeddings_from_db(self, force_reload=False):
-        """Charge les embeddings depuis la DB et calcule des prototypes par utilisateur."""
+     
         if self.user_embeddings is not None and not force_reload:
             return
 
@@ -130,5 +151,6 @@ class FaceRecognizer:
             print(f"✅ Visage reconnu ! Utilisateur = {best_user}")
             return best_user
 
-        print("❌ Aucun match fiable.")
+        self._save_unknown_face(face_img)
+        print("❌ Aucun match fiable - visage sauvegardé dans unknown_users")
         return None
