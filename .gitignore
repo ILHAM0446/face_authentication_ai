@@ -3,6 +3,7 @@ models/dlib_face_recognition_resnet_model_v1.dat
 models/haarcascade_frontalface_default.xml
 models/shape_predictor_68_face_landmarks.dat
 models/shape_predictor_68_face_landmarks.dat.bz2
+models/age_gender_model_final_complete.keras
 dlib/
 mmod_human_face_detector.dat
 *.dat
