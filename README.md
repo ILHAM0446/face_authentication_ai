@@ -1,92 +1,183 @@
-# 🤖 Face Authentication AI
+# Système de Reconnaissance Faciale – README Complet
 
-## 🎯 Description
-Ce projet a pour objectif de développer un **système d’authentification faciale intelligent** capable de :
-- Détecter le visage d’un utilisateur via caméra.
-- Estimer **l’âge** et le **genre** du visage détecté.
-- Vérifier si le visage correspond à un utilisateur enregistré.
-- Accorder ou refuser l’accès selon la correspondance.
-- Enregistrer les nouveaux visages non reconnus dans une base de données MySQL.
+Ce document présente l'ensemble du fonctionnement du **projet de reconnaissance faciale**, incluant :
 
-Projet réalisé en **Python** par une équipe de 4 membres dans le cadre d’un projet d’intelligence artificielle.
+* les bibliothèques utilisées,
+* les modèles IA,
+* le pipeline complet d'inscription et de login,
+* les interfaces,
+* ainsi qu’un résumé global.
 
 ---
 
-## 🧩 Fonctionnalités principales
-- 📷 Détection faciale en temps réel (OpenCV)  
-- 🧠 Encodage et reconnaissance de visages (Face Recognition)  
-- 👤 Prédiction d’âge et de genre (DeepFace / modèle pré-entraîné)  
-- 🗄️ Gestion et stockage des utilisateurs dans MySQL  
-- 🖥️ Interface caméra et panneau administrateur  
+# 1. Introduction du Projet
+
+Notre projet est un système complet de **reconnaissance faciale** permettant :
+
+* l’**inscription** d’un utilisateur via son visage,
+* la **connexion automatique** par reconnaissance faciale,
+* la **prédiction de l’âge et du genre**,
+* la gestion des **utilisateurs inconnus**,
+* le stockage des **embeddings faciaux dans Supabase**.
+
+Objectif :
+👉 Identifier automatiquement un utilisateur à partir de son visage en utilisant des modèles avancés d’IA.
 
 ---
 
-## 🧱 Structure du projet
+# 2. Bibliothèques Utilisées
 
-face_authentication_ai/
-│
-├── main.py # Point d'entrée principal - (Chef de projet)
-│
-├── models/ # Modèles IA
-│ ├── face_detector.py # Détection du visage - (Membre 1)
-│ ├── face_encoder.py # Encodage et comparaison de visages - (Membre 2)
-│ └── age_gender_model.py # Prédiction de l'âge et du genre - (Membre 4)
-│
-├── core/ # Logique métier
-│ ├── authentication_system.py # Reconnaissance et gestion d'accès - (Membre 3)
-│ └── user_manager.py # Gestion des utilisateurs - (Membre 2)
-│
-├── database/ # Gestion MySQL
-│ └── database_manager.py # Connexion, création tables, enregistrement - (Membre 3)
-│
-├── interface/ # Interfaces utilisateur
-│ ├── camera_interface.py # Flux caméra + capture du visage - (Membre 1)
-│ └── admin_interface.py # Affichage des connexions et infos - (Membre 4)
-│
-├── data/ # Données locales
-│ ├── users/ # Images des utilisateurs connus
-│ └── unknown/ # Visages inconnus détectés
-│
-├── utils/ # Fonctions utilitaires
-│ └── helpers.py # Logs, formatage, etc. - (Tous)
-│
-├── requirements.txt # Dépendances Python
-├── README.md # Documentation du projet
-└── .gitignore # Fichiers à ignorer
+## Vision par ordinateur
 
-yaml
-Copier le code
+* **OpenCV (cv2)** : lecture d’images, dessin, conversions.
+* **dlib** : détection faciale, landmarks 68 points et embeddings 128D.
+
+##  Manipulation des données
+
+* **NumPy** : vecteurs, calculs, embeddings.
+* **os / pathlib** : gestion des fichiers et chemins.
+
+## Deep Learning
+
+* **TensorFlow / Keras** :
+
+  * chargement du modèle âge/genre,
+  * entraînement et fine-tuning,
+  * métriques personnalisées,
+  * data augmentation.
+
+## Base de données
+
+* **Supabase** : stockage des utilisateurs, embeddings, inconnus.
 
 ---
 
-## 👥 Répartition des membres et responsabilités
+# 3. Modèles Utilisés
 
-| Membre | Rôle principal | Responsabilités |
-|--------|----------------|----------------|
-| **Membre 1** | Détection faciale | Implémentation de la détection avec OpenCV + interface caméra |
-| **Membre 2** | Encodage & gestion utilisateurs | Génération et comparaison d’encodages + interface gestion utilisateurs |
-| **Membre 3** | Reconnaissance & Base de données | Authentification, gestion MySQL, intégration globale du système |
-| **Membre 4** | Âge & Genre + Interface admin | Modèle prédictif âge/genre et affichage dans panneau admin |
-| **Chef de projet** | Coordination | Supervision, intégration finale, vérification des modules |
+## 3.1 Modèle de Reconnaissance Faciale (Dlib)
 
----
+Dans `face_encoder.py` :
 
-## 🧠 Bibliothèques principales
+* `shape_predictor_68_face_landmarks.dat`
+* `dlib_face_recognition_resnet_model_v1.dat`
 
-| Type | Bibliothèques |
-|------|----------------|
-| Vision | `opencv-python` |
-| Reconnaissance | `face_recognition` |
-| Prédiction âge/genre | `deepface` ou `cvlib` |
-| Base de données | `mysql-connector-python` |
-| Traitement | `numpy`, `pandas` |
-| Interface | `tkinter` ou `streamlit` |
+Fonctions :
+
+1. Détection du visage
+2. Extraction des landmarks
+3. Génération d’un **embedding 128 dimensions**
 
 ---
 
-## ⚙️ Installation
+## 3.2 Modèle Âge & Genre (TensorFlow / Keras)
 
-1. **Cloner le projet :**
-   ```bash
-   git clone https://github.com/votre-compte/face_authentication_ai.git
-   cd face_authentication_ai
+Dans `age_gender_model.py` :
+
+* Input : image 224×224
+* Output :
+
+  * `age_output` → âge (régression)
+  * `gender_output` → probabilités (H/F)
+
+### 🔹 Phase 1 – Warm-up
+
+* MobileNetV2 gelé
+* Entraînement de la tête du réseau uniquement
+
+### 🔹 Phase 2 – Fine-Tuning
+
+* Dégel des **40 dernières couches**
+* Faible learning rate
+* Affinage des performances
+
+Métriques :
+
+* F1-score
+* Précision / Rappel
+* MAE pour l’âge
+
+---
+
+# 4. Fonctionnement du Système
+
+# 4.1 Inscription (Register)
+
+### ✔️ Détection du visage
+
+Caméra ouverte → rectangle vert → prédiction âge/genre.
+
+### ✔️ Prédictions stabilisées
+
+On capture **5 images successives** :
+
+* Âge final = moyenne
+* Genre final = classe majoritaire
+
+### ✔️ Capture
+
+L’utilisateur appuie sur **C**.
+
+### ✔️ Stockage
+
+1. Encodage en embedding 128D
+2. Envoi dans Supabase via `DatabaseManager`
+3. Création du compte
+
+---
+
+# 4.2 Connexion (Login)
+
+1. Détection + prédiction âge/genre
+2. Capture
+3. Génération d’un embedding
+4. Récupération des embeddings stockés
+5. Calcul de la distance (euclidienne ou cosine)
+
+### ✔️ Si distance < seuil :
+
+👉 Utilisateur reconnu → accès accordé
+
+### ✔️ Sinon :
+
+👉 Utilisateur inconnu → image enregistrée dans `unknown_users`
+
+---
+
+# 5. Interfaces du Projet
+
+### 1️⃣ `login_interface.py`
+
+Interface de connexion par reconnaissance faciale.
+
+### 2️⃣ `registre_interface.py`
+
+Interface d'inscription.
+
+### 3️⃣ `camera_interface.py`
+
+Affichage caméra + rectangles + captures.
+
+### 4️⃣ `unknown_users_interface.py`
+
+Liste des visages inconnus détectés.
+
+### 5️⃣ `welcome_interface.py`
+
+Page d’accueil après authentification réussie.
+
+---
+
+# 6. Résumé Global (pour le haut du Readme)
+
+Ce projet utilise :
+
+* **OpenCV + dlib** pour la détection et l’encodage des visages,
+* un modèle **TensorFlow/Keras** pour prédire l’âge et le genre,
+* un système d’embeddings de **128 dimensions** pour identifier les utilisateurs,
+* **Supabase** pour stocker les profils et reconnaître les utilisateurs,
+* un pipeline robuste basé sur 5 captures pour stabiliser les prédictions.
+
+L’inscription et le login fonctionnent en comparant les embeddings faciaux pour déterminer si un visage correspond à un utilisateur enregistré ou non.
+
+---
+
