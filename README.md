@@ -21,7 +21,7 @@ Notre projet est un système complet de **reconnaissance faciale** permettant :
 * le stockage des **embeddings faciaux dans Supabase**.
 
 Objectif :
-👉 Identifier automatiquement un utilisateur à partir de son visage en utilisant des modèles avancés d’IA.
+Identifier automatiquement un utilisateur à partir de son visage en utilisant des modèles avancés d’IA.
 
 ---
 
@@ -135,11 +135,11 @@ L’utilisateur appuie sur **C**.
 
 ### ✔️ Si distance < seuil :
 
-👉 Utilisateur reconnu → accès accordé
+Utilisateur reconnu → accès accordé
 
 ### ✔️ Sinon :
 
-👉 Utilisateur inconnu → image enregistrée dans `unknown_users`
+Utilisateur inconnu → image enregistrée dans `unknown_users`
 
 ---
 
