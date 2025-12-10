@@ -34,7 +34,7 @@ def show_welcome_screen(username, parent=None):
     btn = tk.Button(win, text="Fermer", command=close_welcome, font=("Segoe UI", 14, "bold"), bg="#1976D2", fg="white", padx=20, pady=10)
     btn.pack(pady=20)
 
-    btn_unknown = tk.Button(win, text="👤 Voir utilisateurs inconnus qui essayent d'entrer", command=lambda: show_unknown_users_screen(win), font=("Segoe UI", 12, "bold"), bg="#F57C00", fg="white", padx=15, pady=8)
+    btn_unknown = tk.Button(win, text="👤 Voir utilisateurs inconnus qui essayent d'entrer", command=lambda: show_unknown_users_screen(), font=("Segoe UI", 12, "bold"), bg="#F57C00", fg="white", padx=15, pady=8)
     btn_unknown.pack(pady=10)
     try:
         win.transient(parent)

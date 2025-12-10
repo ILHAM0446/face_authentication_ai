@@ -236,7 +236,7 @@ def recognize_user():
 
 root_tk = tk.Tk()
 root_tk.title("🔑 Login - Face Authentication")
-root_tk.geometry("400x300")
+root_tk.geometry("700x600")
 root_tk.configure(bg="#f0f0f5")
 
 style = ttk.Style()

@@ -36,7 +36,6 @@ def open_camera_and_capture(username=None):
         messagebox.showerror("Erreur", "Impossible de créer l'utilisateur")
         return
     
-    messagebox.showinfo("Succès", f"Utilisateur créé : {username}")
     
     # Initialiser le prédicteur d'âge et genre
     try:
@@ -153,12 +152,11 @@ def open_camera_and_capture(username=None):
                             print(f"❌ Erreur lors de l'écriture du fichier : {e}")
 
                         if written:
-                            messagebox.showinfo("Capture", f"Image sauvegardée → {file_path}")
                             print(f"[DEBUG] Image écrite avec succès: {file_path}")
 
                             embedding = encoder.encode_face(str(file_path), user_id=user_id)
                             if embedding is not None:
-                                messagebox.showinfo("Succès", "Embedding généré et enregistré dans la base de données !")
+                                print( "Embedding généré et enregistré dans la base de données !")
                         else:
                             messagebox.showerror("Erreur", "La capture n'a pas pu être sauvegardée (cv2.imwrite a renvoyé False)")
                             print("[DEBUG] cv2.imwrite a renvoyé False — vérifiez les permissions du dossier ou le format de l'image")
@@ -171,11 +169,11 @@ def open_camera_and_capture(username=None):
 
     cap.release()
     cv2.destroyAllWindows()
-    cv2.waitKey(1)  # Permet à OpenCV de traiter la fermeture
+    cv2.waitKey(1)
 
 root_tk = tk.Tk()
 root_tk.title("🔐 Face Authentication AI")
-root_tk.geometry("420x420")
+root_tk.geometry("700x600")
 root_tk.configure(bg="#f0f0f5")
 
 style = ttk.Style()

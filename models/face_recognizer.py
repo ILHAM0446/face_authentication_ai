@@ -22,7 +22,7 @@ class FaceRecognizer:
         self.user_embeddings = None
         self.user_prototypes = None
         
-        self.unknown_dir = Path(__file__).resolve().parents[1] 
+        self.unknown_dir = Path(__file__).resolve().parents[1] / "unknown_users"
         self.unknown_dir.mkdir(exist_ok=True)
 
     def _l2_normalize(self, v):
