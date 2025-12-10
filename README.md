@@ -1,4 +1,4 @@
-# Système de Reconnaissance Faciale – README Complet
+# Système de Reconnaissance Faciale
 
 Ce document présente l'ensemble du fonctionnement du **projet de reconnaissance faciale**, incluant :
 
