@@ -165,19 +165,3 @@ Liste des visages inconnus détectés.
 
 Page d’accueil après authentification réussie.
 
----
-
-# 6. Résumé Global (pour le haut du Readme)
-
-Ce projet utilise :
-
-* **OpenCV + dlib** pour la détection et l’encodage des visages,
-* un modèle **TensorFlow/Keras** pour prédire l’âge et le genre,
-* un système d’embeddings de **128 dimensions** pour identifier les utilisateurs,
-* **Supabase** pour stocker les profils et reconnaître les utilisateurs,
-* un pipeline robuste basé sur 5 captures pour stabiliser les prédictions.
-
-L’inscription et le login fonctionnent en comparant les embeddings faciaux pour déterminer si un visage correspond à un utilisateur enregistré ou non.
-
----
-
